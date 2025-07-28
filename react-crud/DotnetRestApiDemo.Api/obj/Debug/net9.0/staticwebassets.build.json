@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "+4v1ROearW7pF/jjUw8MVUc8sfdR/liW/stYmmipSZw=",
+  "Source": "DotnetRestApiDemo.Api",
+  "BasePath": "_content/DotnetRestApiDemo.Api",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
