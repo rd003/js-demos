@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 function Person() {
     const [people, setPeople] = useState([]);
     const [editData, setEditData] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         methods.reset(editData)
@@ -21,6 +22,9 @@ function Person() {
             } catch (error) {
                 console.log(error);
                 toast.error('Error occured!')
+            }
+            finally {
+                setLoading(false);
             }
         }
 
@@ -39,6 +43,7 @@ function Person() {
     });
 
     const onSubmit = async (person) => {
+        setLoading(true);
         try {
             if (!person) return;
             if (person.id < 1) {
@@ -58,6 +63,7 @@ function Person() {
         }
         finally {
             // set loading false
+            setLoading(false);
         }
     }
 
@@ -71,6 +77,7 @@ function Person() {
     }
     const onDelete = async (person) => {
         if (!confirm(`Are you sure delete data with name: ${person.firstName} ${person.lastName}`)) return;
+        setLoading(true);
         try {
             await deletePerson(person.id);
             setPeople((prevPeople) => prevPeople.filter(p => p.id !== person.id));
@@ -81,6 +88,7 @@ function Person() {
         }
         finally {
             // set loading false
+            setLoading(false);
         }
     }
     return (
@@ -91,6 +99,7 @@ function Person() {
                         Person Management
                     </h1>
 
+                    {loading && <p>Loading...</p>}
                 </div>
 
                 <PersonForm methods={methods} onFormSubmit={onSubmit} onFormReset={onFormReset} />
