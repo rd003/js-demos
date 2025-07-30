@@ -3148,11 +3148,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/ravindra/Documents/Projects/js/react-crud/DotnetRestApiDemo.Api/DotnetRestApiDemo.Api.csproj",
+      "projectUniqueName": "/home/ravindra/Documents/Projects/js-demos/react-crud/DotnetRestApiDemo.Api/DotnetRestApiDemo.Api.csproj",
       "projectName": "DotnetRestApiDemo.Api",
-      "projectPath": "/home/ravindra/Documents/Projects/js/react-crud/DotnetRestApiDemo.Api/DotnetRestApiDemo.Api.csproj",
+      "projectPath": "/home/ravindra/Documents/Projects/js-demos/react-crud/DotnetRestApiDemo.Api/DotnetRestApiDemo.Api.csproj",
       "packagesPath": "/home/ravindra/.nuget/packages/",
-      "outputPath": "/home/ravindra/Documents/Projects/js/react-crud/DotnetRestApiDemo.Api/obj/",
+      "outputPath": "/home/ravindra/Documents/Projects/js-demos/react-crud/DotnetRestApiDemo.Api/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/ravindra/.nuget/NuGet/NuGet.Config"

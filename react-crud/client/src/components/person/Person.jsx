@@ -2,8 +2,10 @@ import { useForm } from "react-hook-form";
 import PersonForm from "./PersonForm"
 import PersonList from "./PersonList"
 import { useState, useEffect } from 'react';
-import { getPeople, addPerson, updatePerson, deletePerson } from '../../services/person.service'
 import toast from 'react-hot-toast';
+import axios from "axios";
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL + '/people';
 
 function Person() {
     const [people, setPeople] = useState([]);
@@ -17,7 +19,7 @@ function Person() {
     useEffect(() => {
         const loadPeople = async () => {
             try {
-                const peopleList = await getPeople();
+                const peopleList = (await axios.get(BASE_URL)).data;
                 setPeople(peopleList);
             } catch (error) {
                 console.log(error);
@@ -48,11 +50,11 @@ function Person() {
             if (!person) return;
             if (person.id < 1) {
                 // add 
-                const createdPerson = await addPerson(person);
+                const createdPerson = (await axios.post(BASE_URL, person)).data;
                 setPeople((prevPeople) => [...prevPeople, createdPerson]);
             }
             else {
-                await updatePerson(person);
+                await axios.put(`${BASE_URL}/${person.id}`, person);
                 setPeople((prevPeople) => prevPeople.map(p => p.id === person.id ? person : p));
             }
             toast.success('Saved successfully!!');
@@ -79,7 +81,7 @@ function Person() {
         if (!confirm(`Are you sure delete data with name: ${person.firstName} ${person.lastName}`)) return;
         setLoading(true);
         try {
-            await deletePerson(person.id);
+            await axios.delete(`${BASE_URL}/${person.id}`);
             setPeople((prevPeople) => prevPeople.filter(p => p.id !== person.id));
             toast.success('Deleted successfully!!');
         } catch (error) {
