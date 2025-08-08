@@ -1,6 +1,29 @@
+import { useForm } from 'react-hook-form'
+
 const SignupComponent = () => {
+    const defaultFormValues = {
+        email: '',
+        password: '',
+        confirmPassword: '',
+        terms: false
+    };
+
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isValid },
+    } = useForm({
+        defaultValues: defaultFormValues,
+        mode: 'onChange'
+    });
+
+    const onSubmit = (data) => {
+        console.log(data);
+    }
+
+
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <form onSubmit={handleSubmit(onSubmit)} className="min-h-screen flex items-center justify-center bg-gray-50">
             <div className="max-w-md w-full space-y-8">
                 <div>
                     <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -10,70 +33,79 @@ const SignupComponent = () => {
                 <div className="mt-8 space-y-6">
                     <div className="space-y-4">
                         <div>
-                            <label htmlFor="full-name" className="block text-sm font-medium text-gray-700">
-                                Full Name
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                                Email*
                             </label>
-                            <input
-                                id="full-name"
-                                name="fullName"
+                            <input {...register("email", {
+                                required: "Email is required",
+                                pattern: {
+                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                    message: "Please enter a valid email address"
+                                }
+                            })}
+                                id="email"
                                 type="text"
-                                autoComplete="name"
-                                required
+                                autoComplete="off"
                                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                 placeholder="John Doe"
                             />
+
+                            {errors.email && (
+                                <p className="mt-1 text-sm text-red-600">
+                                    {errors.email.message}
+                                </p>
+                            )}
                         </div>
 
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                                Email Address
-                            </label>
-                            <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                autoComplete="email"
-                                required
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                placeholder="john@example.com"
-                            />
-                        </div>
 
                         <div>
                             <label htmlFor="new-password" className="block text-sm font-medium text-gray-700">
-                                Password
+                                Password*
                             </label>
-                            <input
+                            <input {...register("password", {
+                                required: "Please enter the password"
+                            })}
                                 id="new-password"
-                                name="password"
                                 type="password"
-                                autoComplete="new-password"
-                                required
+                                autoComplete="off"
                                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                 placeholder="••••••••"
                             />
+
+                            {errors.password && (
+                                <p className='mt-1 text-red-600'>{errors.password.message}</p>
+                            )}
                         </div>
 
                         <div>
                             <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700">
-                                Confirm Password
+                                Confirm Password*
                             </label>
-                            <input
+                            <input {...register("confirmPassword", {
+                                required: "Please provide confirm password",
+                                validate: (value, formValues) => {
+                                    return value === formValues.password || "Passwords do not match"
+                                }
+                            })}
                                 id="confirm-password"
-                                name="confirmPassword"
                                 type="password"
-                                autoComplete="new-password"
-                                required
+                                autoComplete="off"
                                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                 placeholder="••••••••"
                             />
+
+                            {errors.confirmPassword && (
+                                <p className='mt-1 text-red-600'>{errors.confirmPassword.message}</p>
+                            )}
                         </div>
                     </div>
 
                     <div className="flex items-center">
                         <input
+                            {...register("terms", {
+                                required: "You must agree to the terms and conditions"
+                            })}
                             id="terms"
-                            name="terms"
                             type="checkbox"
                             className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                         />
@@ -85,9 +117,16 @@ const SignupComponent = () => {
                         </label>
                     </div>
 
+                    {errors.terms && (
+                        <p className="mt-1 text-sm text-red-600">
+                            {errors.terms.message}
+                        </p>
+                    )}
+
                     <div>
                         <button
                             type="submit"
+                            disabled={!isValid}
                             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                         >
                             Create Account
@@ -104,7 +143,7 @@ const SignupComponent = () => {
                     </div>
                 </div>
             </div>
-        </div>
+        </form>
     );
 };
 
