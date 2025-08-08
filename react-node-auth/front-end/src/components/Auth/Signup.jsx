@@ -1,30 +1,90 @@
 import { useForm } from 'react-hook-form'
+import { yupResolver } from "@hookform/resolvers/yup"
+import * as yup from "yup"
+import axios from "axios"
+import { useReducer } from 'react';
 
 const SignupComponent = () => {
-    const defaultFormValues = {
-        email: '',
-        password: '',
-        confirmPassword: '',
-        terms: false
-    };
+    const schema = yup
+        .object({
+            email: yup
+                .string()
+                .email()
+                .required('Email is required'),
+            password: yup
+                .string()
+                .required('Password is required')
+                .matches(
+                    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+                    'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)'
+                ),
+            confirmPassword: yup
+                .string()
+                .required('ConfirmPassword is required')
+                .oneOf([yup.ref('password'), null], 'Password must match'),
+            terms: yup.boolean().oneOf([true], 'You must agree to the terms and conditions')
+        })
+        .required();
 
     const {
         register,
         handleSubmit,
-        formState: { errors, isValid },
+        formState: { errors },
+        reset
     } = useForm({
-        defaultValues: defaultFormValues,
+        resolver: yupResolver(schema),
         mode: 'onChange'
     });
 
-    const onSubmit = (data) => {
-        console.log(data);
+    const initialState = {
+        loading: false,
+        error: '',
+        message: ''
+    };
+
+    const reducer = (state, action) => {
+        switch (action.type) {
+            case 'START':
+                return { ...state, loading: true, };
+            case 'SUCCESS':
+                return { ...state, loading: false, error: '', message: action.payload };
+            case 'ERROR':
+                return { ...state, loading: false, error: action.payload, message: '' };
+            case 'RESET':
+                return initialState;
+        }
+    }
+
+    const [state, dispatch] = useReducer(reducer, initialState);
+
+    const onSubmit = async (data) => {
+        dispatch({ type: 'SUCCESS' });
+        try {
+            const { email, password } = data;
+            await axios.post('/api/auth/signup', { email, password });
+
+            dispatch({ type: 'SUCCESS', payload: 'Account created successfully!' });
+
+            reset();
+        }
+        catch (err) {
+            console.log(err);
+            dispatch({
+                type: 'ERROR',
+                payload: err.response?.data?.message || 'Something went wrong.',
+            });
+        }
+
     }
 
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="min-h-screen flex items-center justify-center bg-gray-50">
             <div className="max-w-md w-full space-y-8">
+                {state.loading && <p className="text-blue-500">loading...</p>}
+                {state.error && <p className="text-red-600">{state.error}</p>}
+                {state.message && <p className="text-green-600">{state.message}</p>}
+
                 <div>
                     <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
                         Create your account
@@ -36,13 +96,7 @@ const SignupComponent = () => {
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                                 Email*
                             </label>
-                            <input {...register("email", {
-                                required: "Email is required",
-                                pattern: {
-                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                    message: "Please enter a valid email address"
-                                }
-                            })}
+                            <input {...register("email")}
                                 id="email"
                                 type="text"
                                 autoComplete="off"
@@ -62,9 +116,7 @@ const SignupComponent = () => {
                             <label htmlFor="new-password" className="block text-sm font-medium text-gray-700">
                                 Password*
                             </label>
-                            <input {...register("password", {
-                                required: "Please enter the password"
-                            })}
+                            <input {...register("password")}
                                 id="new-password"
                                 type="password"
                                 autoComplete="off"
@@ -81,12 +133,7 @@ const SignupComponent = () => {
                             <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700">
                                 Confirm Password*
                             </label>
-                            <input {...register("confirmPassword", {
-                                required: "Please provide confirm password",
-                                validate: (value, formValues) => {
-                                    return value === formValues.password || "Passwords do not match"
-                                }
-                            })}
+                            <input {...register("confirmPassword")}
                                 id="confirm-password"
                                 type="password"
                                 autoComplete="off"
@@ -102,9 +149,7 @@ const SignupComponent = () => {
 
                     <div className="flex items-center">
                         <input
-                            {...register("terms", {
-                                required: "You must agree to the terms and conditions"
-                            })}
+                            {...register("terms")}
                             id="terms"
                             type="checkbox"
                             className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
@@ -126,7 +171,6 @@ const SignupComponent = () => {
                     <div>
                         <button
                             type="submit"
-                            disabled={!isValid}
                             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                         >
                             Create Account
