@@ -4,29 +4,60 @@ import Layout from "./components/Layout"
 import NotFound from "./components/NotFound"
 import Dashboard from "./components/Dashboard"
 import Person from './components/person/Person'
-import { Routes, Route } from "react-router";
+import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import axios from 'axios'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 const App = () => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
   useEffect(() => {
+    // I am setting up axios interceptor to handle auth failures
+
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          setUser(null);
+          navigate('/login');
+        }
+        return Promise.reject(error);
+      }
+    );
+
     ; (async () => {
-      var userInfo = (await axios.get('/api/auth/me',
-        { withCredentials: true }
-      )).data;
-      const { username, role } = userInfo;
-      console.log({ username, role });
+      setLoading(true);
+      try {
+        var res = await axios.get('/api/auth/me');
+        setUser(res.data);
+      }
+      catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
+      }
     })();
-  }, []);
+
+    // Cleanup interceptor on unmount
+    return () => {
+      axios.interceptors.response.eject(interceptor);
+    };
+  }, [navigate, location.pathname]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div>
       <Routes>
-        <Route index element={<Login />} />
-        <Route path="login" element={<Login />} />
-        <Route path="signup" element={<Signup />} />
+        <Route index element={<UnprotectedRoute isAuthenticated={!!user}><Login /></UnprotectedRoute>} />
+        <Route path="login" element={<UnprotectedRoute isAuthenticated={!!user}><Login /></UnprotectedRoute>} />
+        <Route path="signup" element={<UnprotectedRoute isAuthenticated={!!user}><Signup /></UnprotectedRoute>} />
 
-        <Route element={<Layout />}>
+        <Route element={<ProtectedRoute isAuthenticated={!!user}><Layout /></ProtectedRoute>} >
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="person" element={<Person />} />
         </Route>
@@ -36,8 +67,19 @@ const App = () => {
       </Routes>
 
 
-    </div>
+    </div >
   )
+}
+
+const ProtectedRoute = ({ isAuthenticated, children }) => {
+  const location = useLocation();
+  return isAuthenticated === true ? (children)
+    : (<Navigate to="/login" replace state={{ path: location.pathname }} />);
+}
+
+const UnprotectedRoute = ({ isAuthenticated, children }) => {
+  const location = useLocation();
+  return isAuthenticated === true ? <Navigate to="/dashboard" replace state={{ path: location.pathname }} /> : children;
 }
 
 export default App
