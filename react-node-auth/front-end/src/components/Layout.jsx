@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { Outlet } from "react-router";
+import { Link } from "react-router";
 
 const Layout = () => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -11,12 +13,12 @@ const Layout = () => {
                     <h1 className="text-xl font-bold text-gray-800">App Name</h1>
                 </div>
                 <nav className="mt-8">
-                    <a href="#" className="block px-4 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-800">
+                    <Link to="/dashboard" className="block px-4 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-800">
                         Dashboard
-                    </a>
-                    <a href="#" className="block px-4 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-800">
+                    </Link>
+                    <Link to="/person" className="block px-4 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-800">
                         Person
-                    </a>
+                    </Link>
                 </nav>
             </div>
 
@@ -51,7 +53,7 @@ const Layout = () => {
                 {/* Content Area */}
                 <main className="flex-1 p-6">
                     <div className="bg-white rounded-lg shadow-sm h-full p-6">
-                        {/* content pages */}
+                        <Outlet />
                     </div>
                 </main>
             </div>

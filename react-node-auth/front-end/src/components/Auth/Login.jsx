@@ -3,8 +3,10 @@ import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
 import axios from "axios"
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
+    const navigate = useNavigate();
     const schema = yup
         .object({
             username: yup
@@ -29,9 +31,9 @@ function Login() {
         setError('');
         setLoading(true);
         try {
-            await axios.post('/api/auth/login', loginData, {
-                withCredentials: true
-            });
+            await axios.post('/api/auth/login', loginData);
+            // we don't need withCredential:true because we are in a same origin.
+            navigate('/dashboard')
         } catch (error) {
             console.log(error);
             setError(err.response?.data?.message || 'Something went wrong!!');
