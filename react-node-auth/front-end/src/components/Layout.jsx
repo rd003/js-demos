@@ -2,16 +2,24 @@ import { useState } from 'react';
 import { Outlet } from "react-router";
 import { Link } from "react-router";
 import useAuth from '../context/AuthContext';
+import axios from 'axios';
+import { useNavigate } from 'react-router';
 
 const Layout = () => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const { user, logout } = useAuth();
+    const navigate = useNavigate();
 
-    const handleLogout = () => {
-        // TODO: logging out from backend
-        // api/auth/logout
-
-        //logout(); // method of AuthContext
+    const handleLogout = async () => {
+        // logging out from backend
+        try {
+            await axios.post('api/auth/logout');
+            logout(); // method of AuthContext
+            navigate('/login')
+        }
+        catch (error) {
+            console.log(error);
+        }
     }
 
     return (
@@ -48,11 +56,11 @@ const Layout = () => {
                             </button>
 
                             {dropdownOpen && (
-                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border">
+                                <div className="cursor-pointer absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border">
                                     <a href="#" className="block px-4 py-2 text-gray-600 hover:bg-gray-100">
                                         Profile
                                     </a>
-                                    <a onClick={handleLogout} className="block px-4 py-2 text-gray-600 hover:bg-gray-100">
+                                    <a onClick={handleLogout} className="block px-4 py-2 cursor-pointer text-gray-600 hover:bg-gray-100">
                                         Logout
                                     </a>
                                 </div>
