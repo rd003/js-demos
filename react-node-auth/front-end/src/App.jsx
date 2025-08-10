@@ -7,11 +7,14 @@ import Person from './components/person/Person'
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import axios from 'axios'
 import { useEffect, useState } from 'react'
+import { AuthProvider } from './context/AuthContext'
 
 const App = () => {
-  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const loginUser = (user) => setUser(user);
+  const logoutUser = () => setUser(null);
 
   useEffect(() => {
     // I am setting up axios interceptor to handle auth failures
@@ -20,7 +23,7 @@ const App = () => {
       (response) => response,
       (error) => {
         if (error.response?.status === 401) {
-          setUser(null);
+          logoutUser();
           navigate('/login');
         }
         return Promise.reject(error);
@@ -31,7 +34,7 @@ const App = () => {
       setLoading(true);
       try {
         var res = await axios.get('/api/auth/me');
-        setUser(res.data);
+        loginUser(res.data);
       }
       catch (error) {
         console.log(error);
@@ -50,25 +53,26 @@ const App = () => {
     return <div>Loading...</div>;
   }
 
+
   return (
-    <div>
-      <Routes>
-        <Route index element={<UnprotectedRoute isAuthenticated={!!user}><Login /></UnprotectedRoute>} />
-        <Route path="login" element={<UnprotectedRoute isAuthenticated={!!user}><Login /></UnprotectedRoute>} />
-        <Route path="signup" element={<UnprotectedRoute isAuthenticated={!!user}><Signup /></UnprotectedRoute>} />
+    <AuthProvider value={{ user, loginUser, logoutUser }}>
+      <div>
+        <Routes>
+          <Route index element={<UnprotectedRoute isAuthenticated={!!user}><Login /></UnprotectedRoute>} />
+          <Route path="login" element={<UnprotectedRoute isAuthenticated={!!user}><Login /></UnprotectedRoute>} />
+          <Route path="signup" element={<UnprotectedRoute isAuthenticated={!!user}><Signup /></UnprotectedRoute>} />
 
-        <Route element={<ProtectedRoute isAuthenticated={!!user}><Layout /></ProtectedRoute>} >
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="person" element={<Person />} />
-        </Route>
+          <Route element={<ProtectedRoute isAuthenticated={!!user}><Layout /></ProtectedRoute>} >
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="person" element={<Person />} />
+          </Route>
 
-        <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<NotFound />} />
 
-      </Routes>
+        </Routes>
 
-
-    </div >
-  )
+      </div >
+    </AuthProvider>)
 }
 
 const ProtectedRoute = ({ isAuthenticated, children }) => {

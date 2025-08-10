@@ -4,9 +4,12 @@ import * as yup from "yup"
 import axios from "axios"
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import useAuth from '../../context/AuthContext';
+import { Link } from 'react-router-dom';
 
 function Login() {
     const navigate = useNavigate();
+    // const { loginUser } = useAuth();
     const schema = yup
         .object({
             username: yup
@@ -124,9 +127,9 @@ function Login() {
                     <div className="text-center">
                         <p className="text-sm text-gray-600">
                             Don't have an account?{' '}
-                            <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500">
+                            <Link to="/signup" className="font-medium text-indigo-600 hover:text-indigo-500">
                                 Sign up here
-                            </a>
+                            </Link>
                         </p>
                     </div>
                 </div>

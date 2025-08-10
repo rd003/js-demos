@@ -3,6 +3,7 @@ import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
 import axios from "axios"
 import { useReducer } from 'react';
+import { Link } from 'react-router-dom';
 
 const SignupComponent = () => {
     const schema = yup
@@ -180,9 +181,9 @@ const SignupComponent = () => {
                     <div className="text-center">
                         <p className="text-sm text-gray-600">
                             Already have an account?{' '}
-                            <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500">
+                            <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
                                 Sign in here
-                            </a>
+                            </Link>
                         </p>
                     </div>
                 </div>
