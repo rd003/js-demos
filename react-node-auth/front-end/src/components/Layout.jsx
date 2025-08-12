@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Outlet } from "react-router";
 import { Link } from "react-router";
 import useAuth from '../context/AuthContext';
-import axios from 'axios';
 import { useNavigate } from 'react-router';
+import axiosHttp from '../utils/axios.util';
 
 const Layout = () => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -13,7 +13,7 @@ const Layout = () => {
     const handleLogout = async () => {
         // logging out from backend
         try {
-            await axios.post('api/auth/logout');
+            await axiosHttp.post('auth/logout');
             logoutUser(); // method of AuthContext
             navigate('/login')
         }

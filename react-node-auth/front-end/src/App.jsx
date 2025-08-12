@@ -5,55 +5,58 @@ import NotFound from "./components/NotFound"
 import Dashboard from "./components/Dashboard"
 import Person from './components/person/Person'
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
-import axios from 'axios'
 import { useEffect, useState } from 'react'
 import { AuthProvider } from './context/AuthContext'
+import axiosHttp from './utils/axios.util'
 
 const App = () => {
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const loginUser = (user) => setUser(user);
   const logoutUser = () => setUser(null);
+  const navigate = useNavigate();
+
+  // I am not able to put this interface outside because of useNavigate and logoutUser methods, because hooks are allowed in components only.
+  axiosHttp.interceptors.response.use(
+    (response) => (response),
+    async (error) => {
+      const originalRequest = error.config;
+      // Don't intercept refresh endpoint failures
+      if (originalRequest.url?.includes('/auth/refresh')) {
+        return Promise.reject(error);
+      }
+      // Check for 401 Unauthorized and ensure we haven't already tried to refresh
+      if (error.response?.status === 401 && !originalRequest._retry) {
+        originalRequest._retry = true;
+
+        try {
+          // Attempt to refresh the token
+          await axiosHttp.post('/auth/refresh', {}, {
+            withCredentials: true
+          });
+
+          // If refresh is successful, retry the original request
+          return axiosHttp(originalRequest);
+
+        } catch (refreshError) {
+          // Refresh failed, logout user and redirect to login
+          logoutUser();
+          navigate('/login');
+          return Promise.reject(refreshError);
+        }
+      }
+      return Promise.reject(error);
+    }
+  );
 
   useEffect(() => {
     const abortController = new AbortController();
-
-    const interceptor = axios.interceptors.response.use(
-      (response) => (response),
-      async (error) => {
-        const originalRequest = error.config;
-
-        // Check for 401 Unauthorized and ensure we haven't already tried to refresh
-        if (error.response?.status === 401 && !originalRequest._retry) {
-          originalRequest._retry = true;
-
-          try {
-            // Attempt to refresh the token
-            await axios.post('/api/auth/refresh', {}, {
-              withCredentials: true
-            });
-
-            // If refresh is successful, retry the original request
-            return axios(originalRequest);
-
-          } catch (refreshError) {
-            // Refresh failed, logout user and redirect to login
-            logoutUser();
-            navigate('/login');
-            return Promise.reject(refreshError);
-          }
-        }
-
-        return Promise.reject(error);
-      }
-    );
 
     // Initial authentication check
     const checkAuth = async () => {
       setLoading(true);
       try {
-        const res = await axios.get('/api/auth/me', {
+        const res = await axiosHttp.get('/auth/me', {
           signal: abortController.signal
         });
         loginUser(res.data);
@@ -70,10 +73,9 @@ const App = () => {
 
     checkAuth();
 
-    // Cleanup interceptor on unmount
+    // Cleanup 
     return () => {
       abortController.abort();
-      axios.interceptors.response.eject(interceptor);
     };
   }, []);
 

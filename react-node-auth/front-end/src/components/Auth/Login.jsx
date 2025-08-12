@@ -1,11 +1,11 @@
 import { useForm } from 'react-hook-form'
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
-import axios from "axios"
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import useAuth from '../../context/AuthContext';
+import axiosHttp from '../../utils/axios.util';
 
 function Login() {
     const navigate = useNavigate();
@@ -34,9 +34,9 @@ function Login() {
         setError('');
         setLoading(true);
         try {
-            await axios.post('/api/auth/login', loginData);
+            await axiosHttp.post('/auth/login', loginData);
             // we don't need withCredential:true because we are in a same origin.
-            const me = (await axios.get('/api/auth/me')).data;
+            const me = (await axiosHttp.get('/auth/me')).data;
             loginUser(me);
             navigate('/dashboard')
         } catch (error) {
