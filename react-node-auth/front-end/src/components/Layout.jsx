@@ -7,14 +7,14 @@ import { useNavigate } from 'react-router';
 
 const Layout = () => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
-    const { user, logout } = useAuth();
+    const { user, logoutUser } = useAuth();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
         // logging out from backend
         try {
             await axios.post('api/auth/logout');
-            logout(); // method of AuthContext
+            logoutUser(); // method of AuthContext
             navigate('/login')
         }
         catch (error) {

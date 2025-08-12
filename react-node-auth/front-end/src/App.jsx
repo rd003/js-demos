@@ -17,37 +17,66 @@ const App = () => {
   const logoutUser = () => setUser(null);
 
   useEffect(() => {
-    // I am setting up axios interceptor to handle auth failures
+    const abortController = new AbortController();
 
     const interceptor = axios.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        if (error.response?.status === 401) {
-          logoutUser();
-          navigate('/login');
+      (response) => (response),
+      async (error) => {
+        const originalRequest = error.config;
+
+        // Check for 401 Unauthorized and ensure we haven't already tried to refresh
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true;
+
+          try {
+            // Attempt to refresh the token
+            await axios.post('/api/auth/refresh', {}, {
+              withCredentials: true
+            });
+
+            // If refresh is successful, retry the original request
+            return axios(originalRequest);
+
+          } catch (refreshError) {
+            // Refresh failed, logout user and redirect to login
+            logoutUser();
+            navigate('/login');
+            return Promise.reject(refreshError);
+          }
         }
+
         return Promise.reject(error);
       }
     );
 
-    ; (async () => {
+    // Initial authentication check
+    const checkAuth = async () => {
       setLoading(true);
       try {
-        var res = await axios.get('/api/auth/me');
+        const res = await axios.get('/api/auth/me', {
+          signal: abortController.signal
+        });
         loginUser(res.data);
-      }
-      catch (error) {
-        console.log(error);
+      } catch (error) {
+        if (!abortController.signal.aborted) {
+          console.log('Auth check failed:', error);
+        }
       } finally {
-        setLoading(false);
+        if (!abortController.signal.aborted) {
+          setLoading(false);
+        }
       }
-    })();
+    };
+
+    checkAuth();
 
     // Cleanup interceptor on unmount
     return () => {
+      abortController.abort();
       axios.interceptors.response.eject(interceptor);
     };
-  }, [navigate, location.pathname]);
+  }, []);
+
 
   if (loading) {
     return <div>Loading...</div>;
@@ -76,7 +105,6 @@ const App = () => {
 }
 
 const ProtectedRoute = ({ isAuthenticated, children }) => {
-  const location = useLocation();
   return isAuthenticated === true ? (children)
     : (<Navigate to="/login" replace state={{ path: location.pathname }} />);
 }

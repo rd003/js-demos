@@ -4,12 +4,12 @@ import * as yup from "yup"
 import axios from "axios"
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useAuth from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
+import useAuth from '../../context/AuthContext';
 
 function Login() {
     const navigate = useNavigate();
-    // const { loginUser } = useAuth();
+    const { loginUser } = useAuth();
     const schema = yup
         .object({
             username: yup
@@ -36,10 +36,12 @@ function Login() {
         try {
             await axios.post('/api/auth/login', loginData);
             // we don't need withCredential:true because we are in a same origin.
+            const me = (await axios.get('/api/auth/me')).data;
+            loginUser(me);
             navigate('/dashboard')
         } catch (error) {
             console.log(error);
-            setError(err.response?.data?.message || 'Something went wrong!!');
+            setError(error.response?.data?.message || 'Something went wrong!!');
         }
         finally {
             setLoading(false);
