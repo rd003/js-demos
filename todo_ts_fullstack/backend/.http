@@ -1,0 +1,8 @@
+@base_address = http://localhost:3000
+POST {{base_address}}/people
+Content-Type: application/json
+
+{
+  "firstName" : "John",
+  "lastName" : "Doe" 
+}
