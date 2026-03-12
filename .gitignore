@@ -52,3 +52,4 @@ next-env.d.ts
 
 # angular
 .angular/
+**/environment.development.ts
